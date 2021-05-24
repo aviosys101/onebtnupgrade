@@ -1,121 +1,72 @@
-const ipc = require('electron').ipcRenderer;
-const buttonCreated2 = document.getElementById('check');
-const buttonCreated1 = document.getElementById('upload');
-const buttonCreated = document.getElementById('ipscan');
-const sendmsg = document.getElementById('posmsg');
-
-//const ipcinfo = JSON.parse('{"group":{"007650000001":{"devmac":"007650000001","devip":"192.168.100.1","devport":"80","ver":"1.27"}}}');
-const ipcinfo = [];
-var Total = '';
-var num = 0;
-var flg = 0;
+const ipc =  require('electron').ipcRenderer;
 var nowfw = 'v1.28_682';
-buttonCreated.addEventListener('click', function (event) {
-   ipc.send('UDPGO');
-});
 
-
-ipc.on('UDPGO-reply', (event, arg) => {
-  var listT = document.getElementById("sel");
-  var option = document.createElement("option");  
-  listT.options.length = 0;
-  //console.log(arg.length);
-
-  info = arg.split(",");
-  var devinfo;
-  var smac=info[2].replace(/-/g,'');
-  var MAC=smac.toUpperCase();
-  var ipport=info[3].split(":");
-  var ip=ipport[0];
-  var port=ipport[1];
-  var version=info[8];
-  devinfo = MAC+','+ip+','+version;
-
-  setTimeout(function(){
-
-  option.text = devinfo;
-  
-  if(listT.length > 1)
-  {
-    for(var i=0; i < listT.length; i++)
-    {
-      var infoA = listT.options[listT.length - 1].innerHTML;
-      var infoB = listT.options[i].innerHTML;
-      if(infoA == infoB)
-      {
-        if(flg == 0)
-        {
-          infoB = infoA;
-          flg = 1;
-        }
-        else if(flg == 1)
-        {
-          listT.remove(listT.length - 1);
-        }
-      }
-      else
-      {
-        listT.add(option);
-        flg = 0;
-      }
-
-    }
-  }
-  else
-  {
-    listT.add(option);
-  }
-
-}, 2000);
-setTimeout(function(){
-  var listT = document.getElementById("sel");
-    for(var s=0; s < listT.length; s++)
-    {
-      var openx = listT.options[s].innerHTML;
-      var vd = openx.split(",");
-      var prd = vd[1];
-      var fw = vd[2];
-      if(nowfw != fw)
-      {
-        //ipc.send('uploadfw',prd)
-        listT.options[s].className="old";
-      }
-      else
-      {
-        listT.options[s].className="now";
-      }
-    }
-}, 3000); 
-  
-})
-
+/************************************ */
 ipc.on('rescan', (event, arg) => {
   ipc.send('UDPGO');
-  
-      
-  });
- 
+});
 
-buttonCreated1.addEventListener('click', function (event) {
-var listT = document.getElementById("sel");
+/******************************* */
+function locs(d,event){
+  d.style.position = "absolute";
+  d.style.left = (event.clientX) +'px';
+  d.style.top = (event.clientY-20)+'px';
+  d.style.display="block";
+}
+
+/**************generate scan grouplist and click event****** */
+ipc.on('groupmsg', (event, arg) => {
+  var groupinfo= '<div class="group">';
+   function devicehtml(devinfo){
+     return  '<div class="device" id="'+devinfo.mac+'" ><div class="MAC">'+devinfo.mac+
+    '</div> '+devinfo.name+'<br> '+devinfo.ip+'<br>'+' DHCP:'+devinfo.dhcp+'<br> ver'+devinfo.ver+'</div>';
+   }
+
+   for (var mac in arg) { groupinfo=groupinfo+devicehtml(arg[mac]);}
+   document.getElementById("grouplist").innerHTML=groupinfo+'</div><div id="selscanid" class="selid"></div>';
+   for (var mac in arg) 
+   {  
+     document.getElementById(mac).addEventListener('click', function (event2) {
+     
+   selid=document.getElementById("selscanid");
+   locs(selid,event2);
+   selid.innerHTML="<div id='macid1'>"+event2.target.id+"</div>"+
+   "<div id='updatefw1' class='butt1'> ⬇️firmware</div>"+
+   "<div id='clsselid1' class='butt1'>✔️Close</div>";
+      document.getElementById('updatefw1').addEventListener('click', function (event1) {
+        console.log(event1.target.previousSibling.innerText);
+        var vid = event1.target.previousSibling.innerText; 
+        var prd1 = document.getElementById(vid).innerHTML.split('<br>')[1].split(':')[0];
+        console.log(prd1);
+        ipc.send('uploadfw',prd1,1);
+      });
+      document.getElementById('clsselid1').addEventListener('click', function (event1) {
+        selid.style.display="none";
+      });
+   })
+  }
+ });
+
+function nowupload(){
+  var listT = document.getElementsByClassName('device');
   for(var s=0; s < listT.length; s++)
   {
-    var openx = listT.options[s].innerHTML;
-    var vd = openx.split(",");
-    var prd = vd[1];
-    var fw = vd[2];
+    var openx = listT[s].textContent;
+    var vd = openx.split(' ');
+    var prd = vd[2].split(':')[0];
+    var fw = vd[4];
 
     ipc.send('uploadfw',prd,listT.length);
-    // if(nowfw != fw)
-    // {
-    //   listT.options[s].className="old";
-    // }
-    // else
-    // {
-    //   listT.options[s].className="now";
-    // }
   }
+}
 
-    
-});
- 
+/**************display menu**************************************************** */
+ipc.on('dispscan', (event, arg) => {
+  ipc.send('UDPGO');
+})
+
+ipc.on('dispupdate', (event, arg) => {
+  nowupload();
+})
+
+
