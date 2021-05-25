@@ -1,6 +1,6 @@
 const ipc =  require('electron').ipcRenderer;
 var nowfw = 'v1.28_682';
-
+document.getElementById('progid').style.display='none';
 /************************************ */
 ipc.on('rescan', (event, arg) => {
   ipc.send('UDPGO');
@@ -16,6 +16,8 @@ function locs(d,event){
 
 /**************generate scan grouplist and click event****** */
 ipc.on('groupmsg', (event, arg) => {
+  document.getElementById('progid').style.display='none';
+  document.getElementById('grouplist').style.display='block';
   var groupinfo= '<div class="group">';
    function devicehtml(devinfo){
      return  '<div class="device" id="'+devinfo.mac+'" ><div class="MAC">'+devinfo.mac+
@@ -34,7 +36,6 @@ ipc.on('groupmsg', (event, arg) => {
    "<div id='updatefw1' class='butt1'> ⬇️firmware</div>"+
    "<div id='clsselid1' class='butt1'>✔️Close</div>";
       document.getElementById('updatefw1').addEventListener('click', function (event1) {
-        console.log(event1.target.previousSibling.innerText);
         var vid = event1.target.previousSibling.innerText; 
         var prd1 = document.getElementById(vid).innerHTML.split('<br>')[1].split(':')[0];
         console.log(prd1);
@@ -62,10 +63,13 @@ function nowupload(){
 
 /**************display menu**************************************************** */
 ipc.on('dispscan', (event, arg) => {
+  document.getElementById('grouplist').style.display='none';
+  document.getElementById('progid').style.display='block';
   ipc.send('UDPGO');
 })
 
 ipc.on('dispupdate', (event, arg) => {
+  
   nowupload();
 })
 
