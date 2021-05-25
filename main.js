@@ -111,11 +111,14 @@ ipc.on('uploadfw', (event,arg,arg1) =>  {
     })
   request.on('response', (response) => {
     console.log(`STATUS: ${response.statusCode}`);
-    dialog.showMessageBoxSync({
+    dialog.showMessageBox({
       type: 'info',
       title: 'MessageBox',
       message: host+' Upgrade '+dd+' firmware OK'
-    })  
+    })
+    setTimeout(function(){
+      event.reply('rescan');
+    },70000);    
     console.log(`HEADERS: ${JSON.stringify(response.headers)}`);
     response.on('data', (chunk) => {
       console.log(`BODY: ${chunk}`);
@@ -130,16 +133,7 @@ ipc.on('uploadfw', (event,arg,arg1) =>  {
       console.log("end");  
       request.end('\r\n--' + boundaryKey + '--\r\n');        
   });
-  console.log(totel);
-  if(totel == arg1)
-  {  
-    var times=61000 * arg1;
-    setTimeout(function(){
-      totel = 0;
-      event.reply('rescan');
-    },times);
-    if(arg1 == 1){ totel = 0;}
-  }
+
 });
 
 function sendMsg(){
