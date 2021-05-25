@@ -1,6 +1,6 @@
 ```bash
 # Clone this repository
-git clone https://github.com/aviosys/onebtnupgrade
+git clone https://github.com/aviosys101/onebtnupgrade.git
 # Go into the repository
 cd onebtnupgrade
 # Install dependencies
