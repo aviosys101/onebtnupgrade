@@ -58,6 +58,8 @@ function createWindow () {
 // This method is equivalent to 'app.on('ready', function())'
 app.whenReady().then(createWindow)
 
+
+
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
 // On macOS it is common for applications and their menu bar
@@ -75,6 +77,8 @@ if (BrowserWindow.getAllWindows().length === 0) {
 	createWindow()
 }
 })
+
+
 
 // In this file, you can include the rest of your
 // app's specific main process code. You can also
@@ -204,5 +208,7 @@ ipc.on('UDPGO', (event, arg) =>  {
       udpmsg[devinfo.mac]=devinfo; 
     }
   });
+
+
 
 });
