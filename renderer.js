@@ -38,15 +38,20 @@ ipc.on('groupmsg', (event, arg) => {
       document.getElementById('updatefw1').addEventListener('click', function (event1) {
         var vid = event1.target.previousSibling.innerText; 
         var prd1 = document.getElementById(vid).innerHTML.split('<br>')[1].split(':')[0];
-        console.log(prd1);
-        ipc.send('uploadfw',prd1,1);
+        var yes = confirm('Firmware upgrade?');
+        if (yes) {
+          ipc.send('uploadfw',prd1.trim(),1);
+        } else {
+            return 0;
+        }    
       });
-      document.getElementById('clsselid1').addEventListener('click', function (event1) {
+      document.getElementById('clsselid1').addEventListener('click', function () {
         selid.style.display="none";
       });
    })
   }
  });
+
 
 function nowupload(){
   var listT = document.getElementsByClassName('device');
@@ -68,9 +73,14 @@ ipc.on('dispscan', (event, arg) => {
   ipc.send('UDPGO');
 })
 
-ipc.on('dispupdate', (event, arg) => {
+ipc.on('dispupdate', (event, arg) => { 
+  var yes = confirm('Full upgrade?');
+  if (yes) {
+    nowupload();
+  } else {
+      return 0;
+  }   
   
-  nowupload();
 })
 
 
