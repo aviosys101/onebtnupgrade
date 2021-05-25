@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aviosys/onebtnupgrade.git"
+    "url": "git+https://github.com/aviosys101/onebtnupgrade.git"
   },
   "keywords": [
     "Electron",
@@ -19,12 +19,12 @@
   "author": "GitHub",
   "license": "None",
   "devDependencies": {
-    "@electron-forge/cli": "^6.0.0-beta.55",
-    "@electron-forge/maker-deb": "^6.0.0-beta.55",
-    "@electron-forge/maker-dmg": "^6.0.0-beta.54",
-    "@electron-forge/maker-rpm": "^6.0.0-beta.55",
-    "@electron-forge/maker-squirrel": "^6.0.0-beta.55",
-    "@electron-forge/maker-zip": "^6.0.0-beta.55",
+    "@electron-forge/cli": "^6.0.0-beta.57",
+    "@electron-forge/maker-deb": "^6.0.0-beta.57",
+    "@electron-forge/maker-dmg": "^6.0.0-beta.57",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.57",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.57",
+    "@electron-forge/maker-zip": "^6.0.0-beta.57",
     "electron": "^12.0.9"
   },
   "dependencies": {
@@ -72,7 +72,7 @@
     }
   },
   "bugs": {
-    "url": "https://github.com/aviosys/onebtnupgrade/issues"
+    "url": "https://github.com/aviosys101/onebtnupgrade/issues"
   },
-  "homepage": "https://github.com/aviosys/onebtnupgrade#readme"
+  "homepage": "https://github.com/aviosys101/onebtnupgrade#readme"
 }
