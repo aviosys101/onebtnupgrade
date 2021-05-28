@@ -1,17 +1,11 @@
 'use strict';
 
-const { app, BrowserWindow,Menu,MenuItem,screen } = require('electron');
+const { app, BrowserWindow,Menu,MenuItem,screen,dialog,shell,net } = require('electron');
+const path = require('path');
 const ipc = require('electron').ipcMain;
 const os = require('os');
-const {dialog} = require('electron');
-
 const fs = require('fs');
 const FormData = require('form-data');
-const axios = require('axios');
-const { net } = require('electron');
-const dgram = require('dgram');
-const server = dgram.createSocket('udp4');
-var info = [];
 var totel=0;
 var HOST = require("ip").address();
 
@@ -25,6 +19,9 @@ function createWindow () {
     {label:'🛠️About',
       submenu: [ 
         {label:'Ver:1.0.0'},
+        {label:'Help', click(){
+          shell.openExternal('http://www.aviosys.com');
+        }},
         {label:'🔧Debug', role:'toggleDevTools'},
         {label:'❌Close', role:'quit'}
         ]}     
@@ -43,6 +40,7 @@ function createWindow () {
           backgroundColor: '#2e2c29',
           icon: 'css/ipc1.png',
           webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: true,
             contextIsolation: false,
           }
@@ -56,11 +54,18 @@ function createWindow () {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 // This method is equivalent to 'app.on('ready', function())'
-app.whenReady().then(createWindow)
+
+app.whenReady().then(() => {
+  createWindow()
+  
+  app.on('activate', function () {
+    // On macOS it's common to re-create a window in the app when the
+    // dock icon is clicked and there are no other windows open.
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+})
 
 
-
-// Quit when all windows are closed.
 app.on('window-all-closed', () => {
 // On macOS it is common for applications and their menu bar
 // To stay active until the user quits explicitly with Cmd + Q
@@ -69,20 +74,6 @@ if (process.platform !== 'darwin') {
 }
 })
 
-app.on('activate', () => {
-// On macOS it's common to re-create a window in the
-// app when the dock icon is clicked and there are no
-// other windows open.
-if (BrowserWindow.getAllWindows().length === 0) {
-	createWindow()
-}
-})
-
-
-
-// In this file, you can include the rest of your
-// app's specific main process code. You can also
-// put them in separate files and require them here.
 
 
 ipc.on('uploadfw', (event,arg,arg1) =>  {   
@@ -133,76 +124,5 @@ ipc.on('uploadfw', (event,arg,arg1) =>  {
       console.log("end");  
       request.end('\r\n--' + boundaryKey + '--\r\n');        
   });
-
-});
-
-function sendMsg(){
-  var message = Buffer.from('IPQUERY,0');
-  client.send(message, 0, message.length, 10000, '255.255.255.255', function(err, bytes) {
-    client.close();
-  });
-}
-
-server.on('close',()=>{
-  console.log('socket已關閉');
-});
-
-server.on('error', (err) => {
-  console.log(`server error:\n${err.stack}`);
-  server.close();
-});
- 
-server.on('listening', () => {
-  const address = server.address();
-  console.log(`server listening ${address.address}:${address.port}`);
-});
-
-server.bind(9999, HOST);
-
-ipc.on('UDPGO', (event, arg) =>  {
-  const client = dgram.createSocket('udp4');
-  client.on('close',()=>{
-    console.log('client.socket已關閉');
-  });
-  
-  client.on('error',(err)=>{
-    console.log(err);
-    client.close();
-  });
-  
-  client.bind(42324,HOST,function () {
-    client.setBroadcast(true);  
-  });
-  
-  function sendMsg(){
-    var message = Buffer.from('IPQUERY,0');
-    client.send(message, 0, message.length, 10000, '255.255.255.255', function(err, bytes) {
-      client.close();
-    });
-  } 
-
-  sendMsg();
-  var udpmsg={};
-  setTimeout(function(){
-    event.reply('groupmsg',udpmsg);
-
-  }, 3000 );
-  server.on('message', (msg, rinfo) => {   
-    if(`${msg}`.indexOf('90-76') == -1)
-    {  
-      info = `${msg}`.split(",");
-      var devinfo={};
-      devinfo.mac=info[2];
-      devinfo.ip=info[3];
-      devinfo.nm=info[4];
-      devinfo.gw=info[5];
-      devinfo.name=info[6];
-      devinfo.dhcp=info[7];
-      devinfo.ver=info[8];
-      udpmsg[devinfo.mac]=devinfo; 
-    }
-  });
-
-
 
 });
