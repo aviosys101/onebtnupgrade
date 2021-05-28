@@ -92,6 +92,7 @@ margin: 0.1rem 0rem 0.1rem 0.6rem;
  text-align: center;
  color: aliceblue;
  box-shadow: 0.5rem 0.5rem 0.5rem rgba(30, 15, 20,0.8);
+ z-index: 1;
 }
 /* #edit #update #close */
 .butt1
@@ -138,3 +139,10 @@ margin: 0.1rem 0rem 0.1rem 0.6rem;
 @-webkit-keyframes progress {from { }to { width: 100% ;}}
 @keyframes progress {from { }  to { width: 100%; }}
 
+.loginclass {    
+    position: absolute;
+    left: 375px;
+    top: 150px;
+    display: none;
+    z-index: 100000;
+}
