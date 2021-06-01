@@ -73,15 +73,19 @@ if (process.platform !== 'darwin') {
 }
 })
 
-ipc.on('uploadfw', (event,arg) =>  {
+
+ipc.on('uploadfw', (event,arg,arg1,arg2) =>  {
   
   const boundaryKey = '----WebKitFormBoundaryWdFFCdVh1ngt8UKf';
-  const user = 'admin';
-  const pw = '12345678';
+  const user = arg1;
+  const pw = arg2;
   const host = arg;   
   const form = new FormData();
   const dd='v1.28_682';
   form.append('filename', fs.createReadStream('./root_uImage'));
+
+  let username = "";
+  let password = "";
  
   const requestApi = {
     method: 'POST',
@@ -93,11 +97,7 @@ ipc.on('uploadfw', (event,arg) =>  {
   var request = net.request(requestApi);  
   request.setHeader("Content-Type",'multipart/form-data; boundary=' + boundaryKey);
   request.setHeader("Connection","keep-alive");
-
-  request.on('login', (authInfo, callback) => {
-      callback(user, pw);
-  })
-  
+ 
   form.pipe(request, { end: false });
   form.on('end', function () {
       console.log("end");  
@@ -116,8 +116,45 @@ ipc.on('uploadfw', (event,arg) =>  {
       console.log(`BODY: ${chunk}`);
     })
     response.on('error', (error) => {
-      console.log(`ERROR: ${JSON.stringify(error)}`);
+      //console.log(`ERROR: ${JSON.stringify(error)}`);
+      console.log('error')
     })
   })
+
+  request.on('login', (authInfo, callback) => {
+    createAuthPrompt().then(credentials => {
+      console.log(credentials.username,credentials.password)
+      username = credentials.username;
+      password = credentials.password;
+      callback(username, password);
+    });
+
+    // console.log(`HI ${JSON.stringify(authInfo)}`)
+    // callback(user, pw);
+})
+
+
 });
 
+function createAuthPrompt() {
+  const authPromptWin = new BrowserWindow({
+    width: 300,
+    height: 300,    
+    icon: 'css/ipc1.png',
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    }
+});
+  authPromptWin.loadFile("auth-form.html"); // load your html form
+  return new Promise((resolve, reject) => {
+    ipc.once("form-submission", (event, username, password) => {
+      authPromptWin.close();
+      const credentials = {
+        username,
+        password
+      };
+      resolve(credentials);
+    });
+  });
+}
