@@ -6,7 +6,6 @@ const ipc = require('electron').ipcMain;
 const os = require('os');
 const fs = require('fs');
 const FormData = require('form-data');
-var totel=0;
 var HOST = require("ip").address();
 
 function createWindow () {
@@ -74,49 +73,29 @@ if (process.platform !== 'darwin') {
 }
 })
 
-
-
-ipc.on('uploadfw', (event,arg,arg1) =>  {   
-      
+ipc.on('uploadfw', (event,arg) =>  {
+  
   const boundaryKey = '----WebKitFormBoundaryWdFFCdVh1ngt8UKf';
   const user = 'admin';
   const pw = '12345678';
-  const host = arg;
-  const cgi = '/cgi-bin/upload.cgi';   
+  const host = arg;   
   const form = new FormData();
   const dd='v1.28_682';
-  form.append('filename', fs.createReadStream('root_uImage'));
-  totel++;
+  form.append('filename', fs.createReadStream('./root_uImage'));
  
-  let request = net.request({
+  const requestApi = {
     method: 'POST',
     protocol: 'http:',
     hostname: host,
-    path: cgi
-  });
+    path: '/cgi-bin/upload.cgi'
+  };
+  
+  var request = net.request(requestApi);  
   request.setHeader("Content-Type",'multipart/form-data; boundary=' + boundaryKey);
   request.setHeader("Connection","keep-alive");
 
   request.on('login', (authInfo, callback) => {
       callback(user, pw);
-    })
-  request.on('response', (response) => {
-    console.log(`STATUS: ${response.statusCode}`);
-    dialog.showMessageBox({
-      type: 'info',
-      title: 'MessageBox',
-      message: host+' Upgrade '+dd+' firmware OK'
-    })
-    setTimeout(function(){
-      event.reply('rescan');
-    },70000);    
-    console.log(`HEADERS: ${JSON.stringify(response.headers)}`);
-    response.on('data', (chunk) => {
-      console.log(`BODY: ${chunk}`);
-    })
-    response.on('error', (error) => {
-      console.log(`ERROR: ${JSON.stringify(error)}`);
-    })
   })
   
   form.pipe(request, { end: false });
@@ -125,4 +104,20 @@ ipc.on('uploadfw', (event,arg,arg1) =>  {
       request.end('\r\n--' + boundaryKey + '--\r\n');        
   });
 
+  request.on('response', (response) => {
+    console.log(`STATUS: ${response.statusCode}`);   
+    console.log(`HEADERS: ${JSON.stringify(response.headers)}`);
+    dialog.showMessageBox({
+      type: 'info',
+      title: 'MessageBox',
+      message: host+' Upgrade '+dd+' firmware OK'
+    }) 
+    response.on('data', (chunk) => {
+      console.log(`BODY: ${chunk}`);
+    })
+    response.on('error', (error) => {
+      console.log(`ERROR: ${JSON.stringify(error)}`);
+    })
+  })
 });
+
