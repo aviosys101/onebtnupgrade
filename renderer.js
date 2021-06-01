@@ -1,15 +1,20 @@
 const ipc =  require('electron').ipcRenderer;
-//const {net} = require('electron');
-const dgram = require('dgram');
-const server = dgram.createSocket('udp4');
+const dgram = require("dgram");
+const server = dgram.createSocket("udp4");
+const HOST = require("ip").address();
+const http = require('http');
+const fs = require('fs');
+const FormData = require('form-data');
+var totle=0;
+var body=[];
 var info = [];
 var udpmsg={};
-var HOST = require("ip").address();
 var nowfw = 'v1.28_682';
 document.getElementById('progid').style.display='none';
-var submitbtn=document.getElementById("submitbtn");
+
 /************************************ */
 ipc.on('rescan', (event, arg) => {
+  document.getElementById("grouplist").innerHTML='';
   scanip();
 });
 
@@ -25,6 +30,7 @@ function locs(d,event){
 function groupmsg(arg) {
   document.getElementById('progid').style.display='none';
   document.getElementById('grouplist').style.display='block';
+  
   var groupinfo= '<div class="group">';
    function devicehtml(devinfo){
      return  '<div class="device" id="'+devinfo.mac+'" ><div class="MAC">'+devinfo.mac+
@@ -59,7 +65,7 @@ function groupmsg(arg) {
         var prd2 = ip2.trim();       
         var yes = confirm('Firmware upgrade?');
         if (yes) {
-          ipc.send('uploadfw',prd2,1);
+         ipc.send('uploadfw',prd2);
           selid.style.display="none";
         } else {
             return 0;
@@ -71,29 +77,31 @@ function groupmsg(arg) {
       });
    })
   }
+  
  }
 
 
- submitbtn.addEventListener('click', function () {
-  loginid=document.getElementById("loginid");
-  loginid.style.display="none";
-});
 
 function nowupload(){
-  var listT = document.getElementsByClassName('device');
-  for(var s=0; s < listT.length; s++)
-  {
-    var openx = listT[s].textContent;
-    var vd = openx.split(' ');
-    var prd = vd[2].split(':')[0];
-    var fw = vd[4];
+    var listT = document.getElementsByClassName('device');
+    
+    
+    for(var s=0; s < listT.length; s++)
+    {
+      var openx = listT[s].textContent;
+      var vd = openx.split(' ');
+      var prd = vd[2].split(':')[0];
+      var fw = vd[4];      
+      body[s]=prd;     
+    }
+    totle = 0;
+    vloop(0);
 
-    ipc.send('uploadfw',prd,listT.length);
-  }
 }
 
 /**************display menu**************************************************** */
 ipc.on('dispscan', (event, arg) => {
+  document.getElementById("grouplist").innerHTML='';
   document.getElementById('grouplist').style.display='none';
   document.getElementById('progid').style.display='block';
   scanip();
@@ -120,7 +128,7 @@ server.on('error', (err) => {
 });
 
 server.on('message', (msg, rinfo) => {   
-    
+  
   if(`${msg}`.indexOf('90-76') == -1)
   {  
     info = `${msg}`.split(",");
@@ -150,7 +158,9 @@ server.bind(9999, HOST);
 
 
 function scanip(){
-  const client = dgram.createSocket('udp4');
+  udpmsg={};
+  var bddgram = require("dgram");
+  var client = bddgram.createSocket('udp4');
   client.on('close',()=>{
     console.log('client.socket已關閉');
   });
@@ -171,7 +181,43 @@ function scanip(){
   });
     
 }
- 
 
+function vloop(idx)
+{
+  
+  console.log('body='+body.length);
+  for(totle=idx; totle < body.length; totle++)
+  {
+    console.log(totle);
+    if(totle == 0){
+      ipc.send('uploadfw',body[totle]);
+    }
+    else{
+      if(totle%5 == 0)
+      {
+        ipc.send('uploadfw',body[totle]);
+        totle = totle+1;
+        console.log('break='+totle)
+        break;
+      }
+      else
+      {
+        console.log('!=0')
+        ipc.send('uploadfw',body[totle]);
+      }
+    }
 
-
+  }
+  
+  if(totle >= body.length)
+  {
+    console.log('END')
+    return 0;
+  }
+  else
+  {
+    console.log('loop')
+    setTimeout(function(){vloop(totle);},60000);        
+  }
+  
+}
