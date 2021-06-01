@@ -3,21 +3,18 @@
   <head>
     <meta charset="UTF-8">
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
     <link rel="stylesheet" href="css/style.css">
     <title>IPPower Tools</title>
   </head>
   <body>
  
-    <div id="grouplist"> </div>
-    
+    <div id="grouplist"> </div><br><br>
     <div id='progid' >
     <div class='progbar' ><div class='prog'>Loading...</div></div>
   </div>
-    
+
     <!-- Adding Individual Renderer Process JS File -->
 	 <script src="renderer.js"></script>
-   
   </body>
 </html>
