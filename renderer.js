@@ -42,7 +42,7 @@ function groupmsg(arg) {
      document.getElementById(mac).addEventListener('click', function (event2) {
      
    selid=document.getElementById("selscanid");
-   loginid=document.getElementById("loginid");
+   
    locs(selid,event2);
    selid.innerHTML="<div id='macid1'>"+event2.target.id+"</div>"+
    "<div id='openweb1' class='butt1'> ⬇️WEB</div>"+
