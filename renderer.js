@@ -2,9 +2,7 @@ const ipc =  require('electron').ipcRenderer;
 const dgram = require("dgram");
 const server = dgram.createSocket("udp4");
 const HOST = require("ip").address();
-const http = require('http');
-const fs = require('fs');
-const FormData = require('form-data');
+
 var totle=0;
 var body=[];
 var info = [];
