@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+
+    <title>Auth-form</title>
+  </head>
+  <body>
+ 
+    <form id="creds">
+      <h3 class="username">Username/Password</h3>
+       <input id="username" class="form-control text-input" placeholder="Username"><br /><br />
+       <input id="password" class="form-control text-input" placeholder="Password"><br /><br />
+       <input id="accsubmit" type="submit" value="Submit">
+   </form>
+
+    <!-- Adding Individual Renderer Process JS File -->
+	 <script >
+ document.getElementById("accsubmit").addEventListener('click', function() {
+
+let username = document.getElementById("username").value;
+let password = document.getElementById("password").value;
+
+const ipc2 =  require('electron').ipcRenderer;
+
+ipc2.send('form-submission', username, password)
+
+});
+
+   </script>
+  </body>
+</html>
