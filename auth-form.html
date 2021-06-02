@@ -5,7 +5,7 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
 
-    <title>Auth-form</title>
+    <title id="devid"></title>
   </head>
   <body>
  
@@ -16,7 +16,7 @@
        <input id="accsubmit" type="submit" value="Submit">
    </form>
 
-    <!-- Adding Individual Renderer Process JS File -->
+    <!-- Adding Individual Renderer Process JS File Auth-form -->
 	 <script >
  document.getElementById("accsubmit").addEventListener('click', function() {
 
@@ -26,7 +26,7 @@ let password = document.getElementById("password").value;
 const ipc2 =  require('electron').ipcRenderer;
 
 ipc2.send('form-submission', username, password)
-
+   close();
 });
 
    </script>
