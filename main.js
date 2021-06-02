@@ -9,6 +9,7 @@ const FormData = require('form-data');
 var HOST = require("ip").address();
 var authhost;
 var filepath;
+var authfail=0;
 
 function createWindow () {
 // Create the browser window.grouplist
@@ -97,16 +98,14 @@ if (process.platform !== 'darwin') {
 ipc.on('uploadfw', (event,arg,arg1,arg2) =>  {
   
   const boundaryKey = '----WebKitFormBoundaryWdFFCdVh1ngt8UKf';
-  const user = arg1;
-  const pw = arg2;
+  var username = arg1;
+  var password = arg2;
+
   const host = arg;   
   const form = new FormData();
-  const dd='v1.28_682';
   form.append('filename', fs.createReadStream(filepath));
 
-  let username = "";
-  let password = "";
- 
+
   const requestApi = {
     method: 'POST',
     protocol: 'http:',
@@ -125,36 +124,37 @@ ipc.on('uploadfw', (event,arg,arg1,arg2) =>  {
   });
 
   request.on('response', (response) => {
-    console.log(`STATUS: ${response.statusCode}`);   
-    console.log(`HEADERS: ${JSON.stringify(response.headers)}`);
+    console.log(`STATUS: ${response.statusCode}`);
     dialog.showMessageBox({
       type: 'info',
       title: 'MessageBox',
-      message: host+' Upgrade '+dd+' firmware OK'
+      message: host+' Upgrade firmware OK'
     }) 
     response.on('data', (chunk) => {
       console.log(`BODY: ${chunk}`);
     })
     response.on('error', (error) => {
-      //console.log(`ERROR: ${JSON.stringify(error)}`);
-      console.log('error')
+      console.log(`ERROR: ${JSON.stringify(error)}`);
     })
   })
 
   request.on('login', (authInfo, callback) => {
     authhost = authInfo.host;
-    createAuthPrompt(authhost).then(credentials => {
-      console.log(credentials.username,credentials.password)
-      username = credentials.username;
-      password = credentials.password;
-      callback(username, password);
-    });
-
-    // console.log(`HI ${JSON.stringify(authInfo)}`)
-    // callback(user, pw);
-})
-
-
+    authfail++;
+    if(authfail > 3)
+    {
+      authfail = 0;
+      createAuthPrompt(authhost).then(credentials => {
+        username = credentials.username;
+        password = credentials.password;
+       callback(username, password);
+      });
+    }
+    else 
+    {
+      callback(username, password)      
+    }
+  })
 });
 
 function createAuthPrompt(host) {
