@@ -7,6 +7,8 @@ const os = require('os');
 const fs = require('fs');
 const FormData = require('form-data');
 var HOST = require("ip").address();
+var authhost;
+var filepath;
 
 function createWindow () {
 // Create the browser window.grouplist
@@ -14,7 +16,25 @@ function createWindow () {
   var menu = Menu.buildFromTemplate(
   [
     {label: '🔍Scan',click(){ win.webContents.send('dispscan');}},
-    {label: '⏬Firmware',click(){win.webContents.send('dispupdate');}},
+    {label:'⏬Firmware',
+      submenu: [ 
+        {label:'Open file',click(){
+          dialog.showOpenDialog({
+            filters: [
+              { name: 'All Files', extensions: ['*'] }
+            ],
+          properties: ['openFile']
+          }).then(result => {
+            filepath = result.filePaths[0];
+            win.webContents.send('dispath',filepath);
+          }).catch(err => {
+            console.log(err)
+          })                    
+        }},
+        {label:'Upgrade', click(){
+          win.webContents.send('dispupdate');
+        }}
+        ]},     
     {label:'🛠️About',
       submenu: [ 
         {label:'Ver:1.0.0'},
@@ -29,20 +49,20 @@ function createWindow () {
   Menu.setApplicationMenu(menu); 
   const display = screen.getPrimaryDisplay();
   const dimensions = display.workAreaSize;
-  const win = new BrowserWindow({
-          width: parseInt(dimensions.width * 0.5),
-          height: parseInt(dimensions.height * 0.5),
-          minWidth: parseInt(260),
-          minHeight: parseInt(300),
-          maxWidth: dimensions.width,
-          maxHeight: dimensions.height,
-          backgroundColor: '#2e2c29',
-          icon: 'css/ipc1.png',
-          webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
-            nodeIntegration: true,
-            contextIsolation: false,
-          }
+  const win = new BrowserWindow({    
+    width: parseInt(dimensions.width * 0.5),
+    height: parseInt(dimensions.height * 0.5),
+    minWidth: parseInt(260),
+    minHeight: parseInt(300),
+    maxWidth: dimensions.width,
+    maxHeight: dimensions.height,
+    backgroundColor: '#2e2c29',
+    icon: 'css/ipc1.png',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: true,
+      contextIsolation: false,
+    }
   })
 
 // Load the index.html of the app.
@@ -82,7 +102,7 @@ ipc.on('uploadfw', (event,arg,arg1,arg2) =>  {
   const host = arg;   
   const form = new FormData();
   const dd='v1.28_682';
-  form.append('filename', fs.createReadStream('./root_uImage'));
+  form.append('filename', fs.createReadStream(filepath));
 
   let username = "";
   let password = "";
@@ -122,7 +142,8 @@ ipc.on('uploadfw', (event,arg,arg1,arg2) =>  {
   })
 
   request.on('login', (authInfo, callback) => {
-    createAuthPrompt().then(credentials => {
+    authhost = authInfo.host;
+    createAuthPrompt(authhost).then(credentials => {
       console.log(credentials.username,credentials.password)
       username = credentials.username;
       password = credentials.password;
@@ -136,17 +157,21 @@ ipc.on('uploadfw', (event,arg,arg1,arg2) =>  {
 
 });
 
-function createAuthPrompt() {
+function createAuthPrompt(host) {
   const authPromptWin = new BrowserWindow({
     width: 300,
-    height: 300,    
+    height: 300,
+    minimizable: false,
+    maximizable: false,
     icon: 'css/ipc1.png',
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
     }
 });
-  authPromptWin.loadFile("auth-form.html"); // load your html form
+authPromptWin.setTitle(host);
+authPromptWin.setMenuBarVisibility(false);
+authPromptWin.loadFile("auth-form.html"); // load your html form
   return new Promise((resolve, reject) => {
     ipc.once("form-submission", (event, username, password) => {
       authPromptWin.close();
