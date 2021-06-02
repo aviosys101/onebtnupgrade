@@ -7,6 +7,7 @@ var totle=0;
 var body=[];
 var info = [];
 var udpmsg={};
+var nowpath='';
 var nowfw = 'v1.28_682';
 document.getElementById('progid').style.display='none';
 
@@ -42,33 +43,36 @@ function groupmsg(arg) {
      document.getElementById(mac).addEventListener('click', function (event2) {
      
    selid=document.getElementById("selscanid");
-   
+
    locs(selid,event2);
    selid.innerHTML="<div id='macid1'>"+event2.target.id+"</div>"+
    "<div id='openweb1' class='butt1'> ⬇️WEB</div>"+
    "<div id='updatefw1' class='butt1'> ⬇️firmware</div>"+
    "<div id='clsselid1' class='butt1'>✔️Close</div>";
       document.getElementById('openweb1').addEventListener('click', function (event3) {
-        console.log(event3);
         var vid1 = event3.target.previousSibling.innerText; 
         var ip1 = document.getElementById(vid1).innerHTML.split('<br>')[1].split(':')[0].trim();
         var prd1 = ip1.trim(); 
         require("electron").shell.openExternal('http://'+prd1);      
         selid.style.display="none";
       });   
-      document.getElementById('updatefw1').addEventListener('click', function (event1) {      
-        var vid2 = event1.target.previousSibling.previousSibling.innerText;
-        var ip2 = document.getElementById(vid2).innerHTML.split('<br>')[1].split(':')[0];
-        console.log(ip2);
-        var prd2 = ip2.trim();       
-        var yes = confirm('Firmware upgrade?');
-        if (yes) {
-         ipc.send('uploadfw',prd2);
-          selid.style.display="none";
-        } else {
-            return 0;
+      document.getElementById('updatefw1').addEventListener('click', function (event1) {   
+        if(nowpath == ''){
+          alert('No File, Firmware->Open File');
         }
-               
+        else{
+          var vid2 = event1.target.previousSibling.previousSibling.innerText;
+          var ip2 = document.getElementById(vid2).innerHTML.split('<br>')[1].split(':')[0];
+          console.log(ip2);
+          var prd2 = ip2.trim();       
+          var yes = confirm('Firmware upgrade?');
+          if (yes) {
+           ipc.send('uploadfw',prd2,'admin','12345678');
+            selid.style.display="none";
+          } else {
+              return 0;
+          }
+        }             
       });
       document.getElementById('clsselid1').addEventListener('click', function () {
         selid.style.display="none";
@@ -78,12 +82,9 @@ function groupmsg(arg) {
   
  }
 
-
-
 function nowupload(){
     var listT = document.getElementsByClassName('device');
-    
-    
+
     for(var s=0; s < listT.length; s++)
     {
       var openx = listT[s].textContent;
@@ -94,7 +95,6 @@ function nowupload(){
     }
     totle = 0;
     vloop(0);
-
 }
 
 /**************display menu**************************************************** */
@@ -106,15 +106,23 @@ ipc.on('dispscan', (event, arg) => {
 })
 
 ipc.on('dispupdate', (event, arg) => { 
-  var yes = confirm('Full upgrade?');
-  if (yes) {
-    nowupload();
-  } else {
-      return 0;
-  }   
-  
+  if(nowpath == ''){
+    alert('No File, Firmware->Open File');
+  }
+  else{
+    var yes = confirm('Full upgrade?');
+    if (yes) {
+      nowupload();
+    } else {
+        return 0;
+    } 
+  }  
+
 })
 
+ipc.on('dispath', (event, arg) => { 
+  nowpath = arg;
+})
 
 server.on('close',()=>{
   console.log('socket已關閉');
@@ -172,7 +180,6 @@ function scanip(){
     client.setBroadcast(true);  
   });
   
-  
   var message = Buffer.from('IPQUERY,0');
   client.send(message, 0, message.length, 10000, '255.255.255.255', function(err, bytes) {
     client.close();
@@ -182,29 +189,23 @@ function scanip(){
 
 function vloop(idx)
 {
-  
-  console.log('body='+body.length);
   for(totle=idx; totle < body.length; totle++)
   {
-    console.log(totle);
     if(totle == 0){
-      ipc.send('uploadfw',body[totle]);
+      ipc.send('uploadfw',body[totle],'admin','12345678');
     }
     else{
       if(totle%5 == 0)
       {
-        ipc.send('uploadfw',body[totle]);
+        ipc.send('uploadfw',body[totle],'admin','12345678');
         totle = totle+1;
-        console.log('break='+totle)
         break;
       }
       else
       {
-        console.log('!=0')
-        ipc.send('uploadfw',body[totle]);
+        ipc.send('uploadfw',body[totle],'admin','12345678');
       }
     }
-
   }
   
   if(totle >= body.length)
@@ -214,7 +215,6 @@ function vloop(idx)
   }
   else
   {
-    console.log('loop')
     setTimeout(function(){vloop(totle);},60000);        
   }
   
