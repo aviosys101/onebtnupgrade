@@ -1,7 +1,7 @@
 {
-  "name": "electron-onebtn-upgrade",
+  "name": "onebtn-upgrade",
   "version": "1.0.0",
-  "description": "Electron application",
+  "description": "application",
   "main": "main.js",
   "scripts": {
     "start": "electron-forge start",
