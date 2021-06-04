@@ -19,12 +19,12 @@
     "@electron-forge/cli": "^6.0.0-beta.57",
     "@electron-forge/maker-deb": "^6.0.0-beta.57",
     "@electron-forge/maker-dmg": "^6.0.0-beta.57",
-    "@electron-forge/maker-rpm": "^6.0.0-beta.57",
     "@electron-forge/maker-squirrel": "^6.0.0-beta.57",
-    "@electron-forge/maker-zip": "^6.0.0-beta.57",
-    "electron": "^12.0.9"
+    "electron": "^12.0.10",
+    "electron-wix-msi": "^3.2.0"
   },
   "dependencies": {
+    "@electron-forge/maker-wix": "^6.0.0-beta.57",
     "dgram": "^1.0.1",
     "electron-squirrel-startup": "^1.0.0",
     "form-data": "^4.0.0",
@@ -32,28 +32,21 @@
   },
   "config": {
     "forge": {
-      "packagerConfig": {},
+      "packagerConfig": {
+        "asar": true,
+        "icon": "css\\app.ico"
+      },
       "makers": [
         {
-          "name": "@electron-forge/maker-squirrel",
+          "name": "@electron-forge/maker-wix",
           "config": {
-            "name": "electron-onebtn-upgrade"
+            "ui": {
+              "chooseDirectory": true
+            }
           }
-        },
-        {
-          "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin"
-          ]
         },
         {
           "name": "@electron-forge/maker-dmg",
-          "config": {
-            "name": "electron-onebtn-upgrade"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
           "config": {
             "name": "electron-onebtn-upgrade"
           }
