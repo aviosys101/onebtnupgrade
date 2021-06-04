@@ -12,9 +12,7 @@
     "type": "git",
     "url": "git+https://github.com/aviosys101/onebtnupgrade.git"
   },
-  "keywords": [
-    "start"
-  ],
+  "keywords": [],
   "author": "GitHub",
   "license": "None",
   "devDependencies": {
