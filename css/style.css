@@ -69,6 +69,12 @@ color:rgba(100,40,40,0.8);
     margin: 0.5rem 0rem 0.5rem 1rem;
     padding: 0 0 0 5;
 }
+
+.nows
+{
+    background-color: lightgoldenrodyellow;
+}
+
 .device .MAC
 {   background-color: rgba(100,100,100, 0.8);
     color:white;
