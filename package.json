@@ -40,6 +40,8 @@
         {
           "name": "@electron-forge/maker-wix",
           "config": {
+            "appIconPath": "css\\upgrade.ico",
+            "arch": "x64",            
             "ui": {
               "chooseDirectory": true
             }
