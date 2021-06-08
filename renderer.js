@@ -56,7 +56,8 @@ function groupmsg(arg) {
         require("electron").shell.openExternal('http://'+prd1);      
         selid.style.display="none";
       });   
-      document.getElementById('updatefw1').addEventListener('click', function (event1) {   
+      document.getElementById('updatefw1').addEventListener('click', function (event1) {
+        console.log(nowpath);
         if(nowpath == ''){
           alert('No File, Firmware->Open File');
         }
@@ -67,6 +68,7 @@ function groupmsg(arg) {
           var prd2 = ip2.trim();       
           var yes = confirm('Firmware upgrade?');
           if (yes) {
+            document.getElementById(vid2).className='device nows';
            ipc.send('uploadfw',prd2,'admin','12345678');
             selid.style.display="none";
           } else {
@@ -87,6 +89,7 @@ function nowupload(){
 
     for(var s=0; s < listT.length; s++)
     {
+      listT[s].className='device nows';
       var openx = listT[s].textContent;
       var vd = openx.split(' ');
       var prd = vd[2].split(':')[0];
@@ -162,6 +165,10 @@ server.on('listening', () => {
 server.bind(9999, HOST);
 
 
+ipc.on('asynchronous-reply', (event, arg) => {
+
+  alert(arg);
+})
 
 function scanip(){
   udpmsg={};
@@ -187,6 +194,8 @@ function scanip(){
     
 }
 
+scanip();
+
 function vloop(idx)
 {
   for(totle=idx; totle < body.length; totle++)
@@ -195,7 +204,7 @@ function vloop(idx)
       ipc.send('uploadfw',body[totle],'admin','12345678');
     }
     else{
-      if(totle%5 == 0)
+      if(totle%4 == 0)
       {
         ipc.send('uploadfw',body[totle],'admin','12345678');
         totle = totle+1;
@@ -217,5 +226,12 @@ function vloop(idx)
   {
     setTimeout(function(){vloop(totle);},60000);        
   }
-  
 }
+
+ipc.on('inpfwver', (event,arg) =>  {
+  
+  var fwname = prompt('Please enter the version');
+
+  //ipc.send('re-inpfwver', fwname)
+
+});
