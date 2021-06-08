@@ -7,9 +7,11 @@ const os = require('os');
 const fs = require('fs');
 const FormData = require('form-data');
 var HOST = require("ip").address();
-var authhost;
+
+var fwver; 
 var filepath;
 var authfail=0;
+
 
 function createWindow () {
 // Create the browser window.grouplist
@@ -32,6 +34,9 @@ function createWindow () {
             console.log(err)
           })                    
         }},
+        {label:'Version number', click(){
+          win.webContents.send('inpfwver');
+        }},        
         {label:'Upgrade', click(){
           win.webContents.send('dispupdate');
         }}
@@ -68,6 +73,7 @@ function createWindow () {
 
 // Load the index.html of the app.
   win.loadFile('index.html')
+  
 }
 
 // This method will be called when Electron has finished
@@ -76,8 +82,28 @@ function createWindow () {
 // This method is equivalent to 'app.on('ready', function())'
 
 app.whenReady().then(() => {
+
   createWindow()
-  
+  if(net.isOnline(HOST) == false){
+    if(HOST == '127.0.0.1'){
+      dialog.showMessageBox({
+        type: 'info',
+        title: 'MessageBox',
+        message: 'Check Network?'
+      }) 
+      return;
+    }    
+    else
+    {
+      dialog.showMessageBox({
+        type: 'info',
+        title: 'MessageBox',
+        message: 'Check Network?'
+      }) 
+      return;     
+    }
+  }  
+
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
@@ -97,6 +123,12 @@ if (process.platform !== 'darwin') {
 
 ipc.on('uploadfw', (event,arg,arg1,arg2) =>  {
   
+  if(net.isOnline(arg) == false)
+  {
+    event.reply('asynchronous-reply', 'offonline')
+    return;
+  }
+  
   const boundaryKey = '----WebKitFormBoundaryWdFFCdVh1ngt8UKf';
   var username = arg1;
   var password = arg2;
@@ -112,7 +144,7 @@ ipc.on('uploadfw', (event,arg,arg1,arg2) =>  {
     hostname: host,
     path: '/cgi-bin/upload.cgi'
   };
-  
+
   var request = net.request(requestApi);  
   request.setHeader("Content-Type",'multipart/form-data; boundary=' + boundaryKey);
   request.setHeader("Connection","keep-alive");
@@ -139,8 +171,8 @@ ipc.on('uploadfw', (event,arg,arg1,arg2) =>  {
   })
 
   request.on('login', (authInfo, callback) => {
-    authhost = authInfo.host;
-    authfail++;
+    var authhost = authInfo.host;
+    authfail++;   
     if(authfail > 3)
     {
       authfail = 0;
@@ -183,3 +215,8 @@ authPromptWin.loadFile("auth-form.html"); // load your html form
     });
   });
 }
+
+ipc.on('re-inpfwver', (event, arg) => {
+  console.log(arg) // prints "ping"
+  fwver=arg;
+})
