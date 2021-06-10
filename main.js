@@ -6,8 +6,8 @@ const ipc = require('electron').ipcMain;
 const os = require('os');
 const fs = require('fs');
 const FormData = require('form-data');
-var HOST = require("ip").address();
 
+var HOST = require("ip").address();
 var fwver; 
 var filepath;
 var authfail=0;
@@ -33,9 +33,6 @@ function createWindow () {
           }).catch(err => {
             console.log(err)
           })                    
-        }},
-        {label:'Version number', click(){
-          win.webContents.send('inpfwver');
         }},        
         {label:'Upgrade', click(){
           win.webContents.send('dispupdate');
@@ -121,7 +118,7 @@ if (process.platform !== 'darwin') {
 })
 
 
-ipc.on('uploadfw', (event,arg,arg1,arg2) =>  {
+ipc.on('uploadfw', (event,arg,arg1,arg2,arg3) =>  {
   
   if(net.isOnline(arg) == false)
   {
@@ -133,7 +130,8 @@ ipc.on('uploadfw', (event,arg,arg1,arg2) =>  {
   var username = arg1;
   var password = arg2;
 
-  const host = arg;   
+  const host = arg;
+  const macid2 = arg3; 
   const form = new FormData();
   form.append('filename', fs.createReadStream(filepath));
 
@@ -156,18 +154,33 @@ ipc.on('uploadfw', (event,arg,arg1,arg2) =>  {
   });
 
   request.on('response', (response) => {
+
     console.log(`STATUS: ${response.statusCode}`);
-    dialog.showMessageBox({
-      type: 'info',
-      title: 'MessageBox',
-      message: host+' Upgrade firmware OK'
-    }) 
-    response.on('data', (chunk) => {
-      console.log(`BODY: ${chunk}`);
-    })
+    event.reply('loading-reply', macid2);
+    setTimeout(function(){
+      event.reply('dispscan');
+    },70000);
+    // dialog.showMessageBox({
+    //   type: 'info',
+    //   title: 'MessageBox',
+    //   message: host+' Upgrade firmware OK'
+    // })
+
     response.on('error', (error) => {
       console.log(`ERROR: ${JSON.stringify(error)}`);
     })
+  })
+
+  request.on("upload-progress", (data) => {
+    const progress = request.getUploadProgress();
+    if(progress.total == data ){
+      setTimeout(function(){
+        event.reply("upload-pro", {
+          data,
+          progress
+        }); 
+      },15000);
+    }
   })
 
   request.on('login', (authInfo, callback) => {
@@ -179,44 +192,45 @@ ipc.on('uploadfw', (event,arg,arg1,arg2) =>  {
       createAuthPrompt(authhost).then(credentials => {
         username = credentials.username;
         password = credentials.password;
-       callback(username, password);
+        callback(username, password);
       });
     }
-    else 
+    else
     {
-      callback(username, password)      
+      callback(username, password);
     }
   })
-});
 
-function createAuthPrompt(host) {
-  const authPromptWin = new BrowserWindow({
-    width: 300,
-    height: 300,
-    minimizable: false,
-    maximizable: false,
-    icon: 'css/ipc1.png',
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-    }
-});
-authPromptWin.setTitle(host);
-authPromptWin.setMenuBarVisibility(false);
-authPromptWin.loadFile("auth-form.html"); // load your html form
-  return new Promise((resolve, reject) => {
-    ipc.once("form-submission", (event, username, password) => {
-      authPromptWin.close();
-      const credentials = {
-        username,
-        password
-      };
-      resolve(credentials);
-    });
+  function createAuthPrompt(host) {
+    const authPromptWin = new BrowserWindow({
+      width: 300,
+      height: 300,
+      minimizable: false,
+      maximizable: false,
+      icon: 'css/ipc1.png',
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+      }
   });
-}
+  authPromptWin.setTitle(host);
+  authPromptWin.setMenuBarVisibility(false);
+  authPromptWin.loadFile("auth-form.html"); // load your html form
+    return new Promise((resolve, reject) => {
+      ipc.once("form-submission", (event, username, password) => {
+        authPromptWin.close();
+        const credentials = {
+          username,
+          password
+        };
+        resolve(credentials);
+      });
+    });
+  }  
 
-ipc.on('re-inpfwver', (event, arg) => {
-  console.log(arg) // prints "ping"
-  fwver=arg;
-})
+
+});
+
+
+
+
