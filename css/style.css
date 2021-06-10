@@ -139,11 +139,37 @@ margin: 0.1rem 0rem 0.1rem 0.6rem;
     max-width: 100%;
     float:left;
     
-    animation: progress 2s 1 forwards;
-    
+    animation: progress 2s 1 forwards;  
 }
 @-webkit-keyframes progress {from { }to { width: 100% ;}}
 @keyframes progress {from { }  to { width: 100%; }}
+
+.progbarsw {
+   display: none; 
+}
+
+.progbar1 {
+    width: 100px;
+    height: 9px;
+    background-color: #e03030;
+    padding: 0;
+    border: 1px #4040a0 solid;
+    margin: 5%;
+}
+.prog1{
+    background: #a0Ca6a; 
+    text-align: center;
+    color: #e0f0e0;
+    font-size: 2em;
+    height: 9px;
+    width: 0%;
+    max-width: 100%;
+    float:left;
+    
+    animation: progress1 70s 1 forwards;  
+}
+@-webkit-keyframes progress1 {from { }to { width: 100% ;}}
+@keyframes progress1 {from { }  to { width: 100%; }}
 
 .loginclass {    
     position: absolute;
