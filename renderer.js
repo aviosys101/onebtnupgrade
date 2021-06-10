@@ -5,6 +5,7 @@ const HOST = require("ip").address();
 
 var totle=0;
 var body=[];
+var bodymac=[];
 var info = [];
 var udpmsg={};
 var nowpath='';
@@ -33,7 +34,8 @@ function groupmsg(arg) {
   var groupinfo= '<div class="group">';
    function devicehtml(devinfo){
      return  '<div class="device" id="'+devinfo.mac+'" ><div class="MAC">'+devinfo.mac+
-    '</div> '+devinfo.name+'<br> '+devinfo.ip+'<br>'+' DHCP:'+devinfo.dhcp+'<br> ver'+devinfo.ver+'</div>';
+    '<br> '+devinfo.name+'<br> '+devinfo.ip+'<br>'+' DHCP:'+devinfo.dhcp+'<br> '+devinfo.ver+'</div>\
+    <div id="s'+devinfo.mac+'" class="progbarsw" ><div class="progbar1"><div class="prog1"></div></div></div></div>';
    }
 
    for (var mac in arg) { groupinfo=groupinfo+devicehtml(arg[mac]);}
@@ -41,35 +43,32 @@ function groupmsg(arg) {
    for (var mac in arg) 
    {  
      document.getElementById(mac).addEventListener('click', function (event2) {
-     
    selid=document.getElementById("selscanid");
 
    locs(selid,event2);
-   selid.innerHTML="<div id='macid1'>"+event2.target.id+"</div>"+
+   selid.innerHTML="<div id='macid1'>"+event2.path[1].id+"</div>"+
    "<div id='openweb1' class='butt1'> ⬇️WEB</div>"+
    "<div id='updatefw1' class='butt1'> ⬇️firmware</div>"+
    "<div id='clsselid1' class='butt1'>✔️Close</div>";
       document.getElementById('openweb1').addEventListener('click', function (event3) {
-        var vid1 = event3.target.previousSibling.innerText; 
-        var ip1 = document.getElementById(vid1).innerHTML.split('<br>')[1].split(':')[0].trim();
+        var vid1 = event3.path[1].firstChild.innerText; 
+        var ip1 = document.getElementById(vid1).innerHTML.split('<br>')[2].split(':')[0].trim();
         var prd1 = ip1.trim(); 
         require("electron").shell.openExternal('http://'+prd1);      
         selid.style.display="none";
       });   
       document.getElementById('updatefw1').addEventListener('click', function (event1) {
-        console.log(nowpath);
         if(nowpath == ''){
           alert('No File, Firmware->Open File');
         }
         else{
-          var vid2 = event1.target.previousSibling.previousSibling.innerText;
-          var ip2 = document.getElementById(vid2).innerHTML.split('<br>')[1].split(':')[0];
-          console.log(ip2);
-          var prd2 = ip2.trim();       
+          var vid2 = event1.path[1].firstChild.innerText;
+          var ip2 = document.getElementById(vid2).innerHTML.split('<br>')[2].split(':')[0].trim();
+          var prd2 = ip2;       
           var yes = confirm('Firmware upgrade?');
           if (yes) {
             document.getElementById(vid2).className='device nows';
-           ipc.send('uploadfw',prd2,'admin','12345678');
+           ipc.send('uploadfw',prd2,'admin','12345678',vid2);
             selid.style.display="none";
           } else {
               return 0;
@@ -85,18 +84,35 @@ function groupmsg(arg) {
  }
 
 function nowupload(){
-    var listT = document.getElementsByClassName('device');
-
+    var listT = document.getElementsByClassName('MAC');
+    
     for(var s=0; s < listT.length; s++)
     {
-      listT[s].className='device nows';
+      
       var openx = listT[s].textContent;
       var vd = openx.split(' ');
+      var macd = vd[0];
       var prd = vd[2].split(':')[0];
-      var fw = vd[4];      
-      body[s]=prd;     
+      var fw = vd[4];
+
+      console.log(nowfw)
+      if(fw != nowfw)
+      {
+        //document.getElementsByClassName('progbarsw')[s].style.display='block';
+        body[s]=prd;
+        bodymac[s]=macd;
+      }
+      else
+      {
+        body[s]='';
+        bodymac[s]='';
+      }
+
+      
     }
     totle = 0;
+    body = body.filter(el => el);
+    bodymac = bodymac.filter(el => el);
     vloop(0);
 }
 
@@ -125,6 +141,8 @@ ipc.on('dispupdate', (event, arg) => {
 
 ipc.on('dispath', (event, arg) => { 
   nowpath = arg;
+  let nowfw1=arg.split(/\/|\\/).pop()
+  nowfw = 'v1.'+nowfw1.substring(13,nowfw1.length)
 })
 
 server.on('close',()=>{
@@ -194,25 +212,25 @@ function scanip(){
     
 }
 
-scanip();
+//scanip();
 
 function vloop(idx)
 {
   for(totle=idx; totle < body.length; totle++)
   {
     if(totle == 0){
-      ipc.send('uploadfw',body[totle],'admin','12345678');
+      sendfw(totle);
     }
     else{
       if(totle%4 == 0)
       {
-        ipc.send('uploadfw',body[totle],'admin','12345678');
+        sendfw(totle);
         totle = totle+1;
         break;
       }
       else
       {
-        ipc.send('uploadfw',body[totle],'admin','12345678');
+        sendfw(totle);
       }
     }
   }
@@ -228,10 +246,17 @@ function vloop(idx)
   }
 }
 
-ipc.on('inpfwver', (event,arg) =>  {
-  
-  var fwname = prompt('Please enter the version');
+function sendfw(idx)
+{
+  document.getElementById(bodymac[idx]).className='device nows';
+  ipc.send('uploadfw',body[idx],'admin','12345678',bodymac[idx]);
+}
 
-  //ipc.send('re-inpfwver', fwname)
 
-});
+ipc.on('loading-reply', (event, arg) => {
+  document.getElementById('s'+arg).style.display='block';
+})
+
+ipc.on("upload-pro", (event, data) => {
+  alert(`"Upload progress hanlder triggered. Data: ${data.data}. Progress: ${JSON.stringify(data.progress)}`);
+})
