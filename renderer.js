@@ -68,7 +68,7 @@ function groupmsg(arg) {
           var yes = confirm('Firmware upgrade?');
           if (yes) {
             document.getElementById(vid2).className='device nows';
-           ipc.send('uploadfw',prd2,'admin','12345678',vid2);
+           ipc.send('uploadfw',prd2,'admin','12345678',vid2,1);
             selid.style.display="none";
           } else {
               return 0;
@@ -249,7 +249,7 @@ function vloop(idx)
 function sendfw(idx)
 {
   document.getElementById(bodymac[idx]).className='device nows';
-  ipc.send('uploadfw',body[idx],'admin','12345678',bodymac[idx]);
+  ipc.send('uploadfw',body[idx],'admin','12345678',bodymac[idx],body.length);
 }
 
 
@@ -258,5 +258,5 @@ ipc.on('loading-reply', (event, arg) => {
 })
 
 ipc.on("upload-pro", (event, data) => {
-  alert(`"Upload progress hanlder triggered. Data: ${data.data}. Progress: ${JSON.stringify(data.progress)}`);
+  alert(`${data.host} "Upload progress hanlder triggered. Data: ${data.data}. Progress: ${JSON.stringify(data.progress)}`);
 })
