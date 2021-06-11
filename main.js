@@ -1,262 +1,238 @@
-const ipc =  require('electron').ipcRenderer;
-const dgram = require("dgram");
-const server = dgram.createSocket("udp4");
-const HOST = require("ip").address();
+'use strict';
 
-var totle=0;
-var body=[];
-var bodymac=[];
-var info = [];
-var udpmsg={};
-var nowpath='';
-var nowfw = 'v1.28_682';
-document.getElementById('progid').style.display='none';
+const { app, BrowserWindow,Menu,MenuItem,screen,dialog,shell,net } = require('electron');
+const path = require('path');
+const ipc = require('electron').ipcMain;
+const os = require('os');
+const fs = require('fs');
+const FormData = require('form-data');
 
-/************************************ */
-ipc.on('rescan', (event, arg) => {
-  document.getElementById("grouplist").innerHTML='';
-  scanip();
-});
+var HOST = require("ip").address();
+var fwver; 
+var filepath;
+var authfail=0;
+var pop=1;
 
-/******************************* */
-function locs(d,event){
-  d.style.position = "absolute";
-  d.style.left = (event.clientX) +'px';
-  d.style.top = (event.clientY-20)+'px';
-  d.style.display="block";
-}
 
-/**************generate scan grouplist and click event****** */
-function groupmsg(arg) {
-  document.getElementById('progid').style.display='none';
-  document.getElementById('grouplist').style.display='block';
-  
-  var groupinfo= '<div class="group">';
-   function devicehtml(devinfo){
-     return  '<div class="device" id="'+devinfo.mac+'" ><div class="MAC">'+devinfo.mac+
-    '<br> '+devinfo.name+'<br> '+devinfo.ip+'<br>'+' DHCP:'+devinfo.dhcp+'<br> '+devinfo.ver+'</div>\
-    <div id="s'+devinfo.mac+'" class="progbarsw" ><div class="progbar1"><div class="prog1"></div></div></div></div>';
-   }
+function createWindow () {
+// Create the browser window.grouplist
 
-   for (var mac in arg) { groupinfo=groupinfo+devicehtml(arg[mac]);}
-   document.getElementById("grouplist").innerHTML=groupinfo+'</div><div id="selscanid" class="selid"></div>';
-   for (var mac in arg) 
-   {  
-     document.getElementById(mac).addEventListener('click', function (event2) {
-   selid=document.getElementById("selscanid");
+  var menu = Menu.buildFromTemplate(
+  [
+    {label: '🔍Scan',click(){ win.webContents.send('dispscan');}},
+    {label:'⏬Firmware',
+      submenu: [ 
+        {label:'Open file',click(){
+          dialog.showOpenDialog({
+            filters: [
+              { name: 'All Files', extensions: ['*'] }
+            ],
+          properties: ['openFile']
+          }).then(result => {
+            filepath = result.filePaths[0];
+            win.webContents.send('dispath',filepath);
+          }).catch(err => {
+            console.log(err)
+          })                    
+        }},        
+        {label:'Upgrade', click(){
+          win.webContents.send('dispupdate');
+        }}
+        ]},     
+    {label:'🛠️About',
+      submenu: [ 
+        {label:'Ver:1.0.0'},
+        {label:'Help', click(){
+          shell.openExternal('http://www.aviosys.com');
+        }},
+        {label:'🔧Debug', role:'toggleDevTools'},
+        {label:'❌Close', role:'quit'}
+        ]}     
+  ])
 
-   locs(selid,event2);
-   selid.innerHTML="<div id='macid1'>"+event2.path[1].id+"</div>"+
-   "<div id='openweb1' class='butt1'> ⬇️WEB</div>"+
-   "<div id='updatefw1' class='butt1'> ⬇️firmware</div>"+
-   "<div id='clsselid1' class='butt1'>✔️Close</div>";
-      document.getElementById('openweb1').addEventListener('click', function (event3) {
-        var vid1 = event3.path[1].firstChild.innerText; 
-        var ip1 = document.getElementById(vid1).innerHTML.split('<br>')[2].split(':')[0].trim();
-        var prd1 = ip1.trim(); 
-        require("electron").shell.openExternal('http://'+prd1);      
-        selid.style.display="none";
-      });   
-      document.getElementById('updatefw1').addEventListener('click', function (event1) {
-        if(nowpath == ''){
-          alert('No File, Firmware->Open File');
-        }
-        else{
-          var vid2 = event1.path[1].firstChild.innerText;
-          var ip2 = document.getElementById(vid2).innerHTML.split('<br>')[2].split(':')[0].trim();
-          var prd2 = ip2;       
-          var yes = confirm('Firmware upgrade?');
-          if (yes) {
-            document.getElementById(vid2).className='device nows';
-           ipc.send('uploadfw',prd2,'admin','12345678',vid2,1);
-            selid.style.display="none";
-          } else {
-              return 0;
-          }
-        }             
-      });
-      document.getElementById('clsselid1').addEventListener('click', function () {
-        selid.style.display="none";
-      });
-   })
-  }
-  
- }
-
-function nowupload(){
-    var listT = document.getElementsByClassName('MAC');
-    
-    for(var s=0; s < listT.length; s++)
-    {
-      
-      var openx = listT[s].textContent;
-      var vd = openx.split(' ');
-      var macd = vd[0];
-      var prd = vd[2].split(':')[0];
-      var fw = vd[4];
-
-      console.log(nowfw)
-      if(fw != nowfw)
-      {
-        //document.getElementsByClassName('progbarsw')[s].style.display='block';
-        body[s]=prd;
-        bodymac[s]=macd;
-      }
-      else
-      {
-        body[s]='';
-        bodymac[s]='';
-      }
-
-      
+  Menu.setApplicationMenu(menu); 
+  const display = screen.getPrimaryDisplay();
+  const dimensions = display.workAreaSize;
+  const win = new BrowserWindow({    
+    width: parseInt(dimensions.width * 0.5),
+    height: parseInt(dimensions.height * 0.5),
+    minWidth: parseInt(260),
+    minHeight: parseInt(300),
+    maxWidth: dimensions.width,
+    maxHeight: dimensions.height,
+    backgroundColor: '#2e2c29',
+    icon: 'css/ipc1.png',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: true,
+      contextIsolation: false,
     }
-    totle = 0;
-    body = body.filter(el => el);
-    bodymac = bodymac.filter(el => el);
-    vloop(0);
+  })
+
+// Load the index.html of the app.
+  win.loadFile('index.html')
+  
 }
 
-/**************display menu**************************************************** */
-ipc.on('dispscan', (event, arg) => {
-  document.getElementById("grouplist").innerHTML='';
-  document.getElementById('grouplist').style.display='none';
-  document.getElementById('progid').style.display='block';
-  scanip();
-})
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
+// This method is equivalent to 'app.on('ready', function())'
 
-ipc.on('dispupdate', (event, arg) => { 
-  if(nowpath == ''){
-    alert('No File, Firmware->Open File');
-  }
-  else{
-    var yes = confirm('Full upgrade?');
-    if (yes) {
-      nowupload();
-    } else {
-        return 0;
-    } 
+app.whenReady().then(() => {
+
+  createWindow()
+  if(net.isOnline(HOST) == false){
+    if(HOST == '127.0.0.1'){
+      dialog.showMessageBox({
+        type: 'info',
+        title: 'MessageBox',
+        message: 'Check Network?'
+      }) 
+      return;
+    }    
+    else
+    {
+      dialog.showMessageBox({
+        type: 'info',
+        title: 'MessageBox',
+        message: 'Check Network?'
+      }) 
+      return;     
+    }
   }  
 
+  app.on('activate', function () {
+    // On macOS it's common to re-create a window in the app when the
+    // dock icon is clicked and there are no other windows open.
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
 })
 
-ipc.on('dispath', (event, arg) => { 
-  nowpath = arg;
-  let nowfw1=arg.split(/\/|\\/).pop()
-  nowfw = 'v1.'+nowfw1.substring(13,nowfw1.length)
-})
 
-server.on('close',()=>{
-  console.log('socket已關閉');
-});
-
-server.on('error', (err) => {
-  console.log(`server error:\n${err.stack}`);
-  server.close();
-});
-
-server.on('message', (msg, rinfo) => {   
-  
-  if(`${msg}`.indexOf('90-76') == -1)
-  {  
-    info = `${msg}`.split(",");
-    var devinfo={};
-    devinfo.mac=info[2];
-    devinfo.ip=info[3];
-    devinfo.nm=info[4];
-    devinfo.gw=info[5];
-    devinfo.name=info[6];
-    devinfo.dhcp=info[7];
-    devinfo.ver=info[8];
-    udpmsg[devinfo.mac]=devinfo; 
-  }
-  setTimeout(function(){
-    groupmsg(udpmsg);
-
-  }, 3000 );  
-});
-
-server.on('listening', () => {
-  const address = server.address();
-  console.log(`server listening ${address.address}:${address.port}`);
-});
-
-server.bind(9999, HOST);
-
-
-ipc.on('asynchronous-reply', (event, arg) => {
-
-  alert(arg);
-})
-
-function scanip(){
-  udpmsg={};
-  var bddgram = require("dgram");
-  var client = bddgram.createSocket('udp4');
-  client.on('close',()=>{
-    console.log('client.socket已關閉');
-  });
-  
-  client.on('error',(err)=>{
-    console.log(err);
-    client.close();
-  });
-  
-  client.bind(42324,HOST,function () {
-    client.setBroadcast(true);  
-  });
-  
-  var message = Buffer.from('IPQUERY,0');
-  client.send(message, 0, message.length, 10000, '255.255.255.255', function(err, bytes) {
-    client.close();
-  });
-    
+app.on('window-all-closed', () => {
+// On macOS it is common for applications and their menu bar
+// To stay active until the user quits explicitly with Cmd + Q
+if (process.platform !== 'darwin') {
+	app.quit()
 }
+})
 
-//scanip();
 
-function vloop(idx)
-{
-  for(totle=idx; totle < body.length; totle++)
+ipc.on('uploadfw', (event,arg,arg1,arg2,arg3,arg4) =>  {
+  
+  if(net.isOnline(arg) == false)
   {
-    if(totle == 0){
-      sendfw(totle);
+    event.reply('asynchronous-reply', 'offonline')
+    return;
+  }
+  
+  const boundaryKey = '----WebKitFormBoundaryWdFFCdVh1ngt8UKf';
+  var username = arg1;
+  var password = arg2;
+
+  const totles = arg4;
+  const host = arg;
+  const macid2 = arg3; 
+  const form = new FormData();
+  form.append('filename', fs.createReadStream(filepath));
+
+
+  const requestApi = {
+    method: 'POST',
+    protocol: 'http:',
+    hostname: host,
+    path: '/cgi-bin/upload.cgi'
+  };
+
+  var request = net.request(requestApi);  
+  request.setHeader("Content-Type",'multipart/form-data; boundary=' + boundaryKey);
+  request.setHeader("Connection","keep-alive");
+ 
+  form.pipe(request, { end: false });
+  form.on('end', function () {
+      console.log("end");  
+      request.end('\r\n--' + boundaryKey + '--\r\n');        
+  });
+
+  request.on('response', (response) => {
+
+    console.log(`STATUS: ${response.statusCode}`);
+    event.reply('loading-reply', macid2);
+    console.log(pop)
+    if(pop == totles){
+      setTimeout(function(){
+        event.reply('dispscan');
+      },70000);
+    }else{
+      pop++
     }
-    else{
-      if(totle%4 == 0)
-      {
-        sendfw(totle);
-        totle = totle+1;
-        break;
-      }
-      else
-      {
-        sendfw(totle);
-      }
+    // dialog.showMessageBox({
+    //   type: 'info',
+    //   title: 'MessageBox',
+    //   message: host+' Upgrade firmware OK'
+    // })
+
+    response.on('error', (error) => {
+      console.log(`ERROR: ${JSON.stringify(error)}`);
+    })
+  })
+
+  request.on("upload-progress", (data) => {
+    const progress = request.getUploadProgress();
+    if(progress.total == data ){
+      setTimeout(function(){
+        event.reply("upload-pro", {
+          host,
+          data,
+          progress
+        }); 
+      },20000);
     }
-  }
-  
-  if(totle >= body.length)
-  {
-    console.log('END')
-    return 0;
-  }
-  else
-  {
-    setTimeout(function(){vloop(totle);},60000);        
-  }
-}
+  })
 
-function sendfw(idx)
-{
-  document.getElementById(bodymac[idx]).className='device nows';
-  ipc.send('uploadfw',body[idx],'admin','12345678',bodymac[idx],body.length);
-}
+  request.on('login', (authInfo, callback) => {
+    var authhost = authInfo.host;
+    authfail++;   
+    if(authfail > 3)
+    {
+      authfail = 0;
+      createAuthPrompt(authhost).then(credentials => {
+        username = credentials.username;
+        password = credentials.password;
+        callback(username, password);
+      });
+    }
+    else
+    {
+      callback(username, password);
+    }
+  })
 
-
-ipc.on('loading-reply', (event, arg) => {
-  document.getElementById('s'+arg).style.display='block';
-})
-
-ipc.on("upload-pro", (event, data) => {
-  alert(`${data.host} "Upload progress hanlder triggered. Data: ${data.data}. Progress: ${JSON.stringify(data.progress)}`);
-})
+  function createAuthPrompt(host) {
+    const authPromptWin = new BrowserWindow({
+      width: 300,
+      height: 300,
+      minimizable: false,
+      maximizable: false,
+      icon: 'css/ipc1.png',
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+      }
+  });
+  authPromptWin.setTitle(host);
+  authPromptWin.setMenuBarVisibility(false);
+  authPromptWin.loadFile("auth-form.html"); // load your html form
+    return new Promise((resolve, reject) => {
+      ipc.once("form-submission", (event, username, password) => {
+        authPromptWin.close();
+        const credentials = {
+          username,
+          password
+        };
+        resolve(credentials);
+      });
+    });
+  }  
+});
