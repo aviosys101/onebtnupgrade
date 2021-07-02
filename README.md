@@ -7,7 +7,6 @@
 
 # Install dependencies
 3)npm install
-   
-#Run the app
-4)npm start
 
+# Run the app
+4)npm start
