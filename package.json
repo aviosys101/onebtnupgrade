@@ -2,42 +2,38 @@
   "name": "onebtn-upgrade",
   "version": "1.0.0",
   "description": "upgrade multiple devices",
+  "private": true,
+  "productName": "Onebtn-upgrade",
   "main": "main.js",
   "scripts": {
     "start": "electron-forge start",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "package": "electron-forge package",
     "make": "electron-forge make"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/aviosys101/onebtnupgrade.git"
-  },
   "keywords": [],
-  "author": "GitHub",
+  "author": "Aviosys",
   "license": "ISC",
   "devDependencies": {
-    "@electron-forge/cli": "^6.0.0-beta.57",
-    "@electron-forge/maker-deb": "^6.0.0-beta.57",
-    "@electron-forge/maker-dmg": "^6.0.0-beta.57",
-    "@electron-forge/maker-squirrel": "^6.0.0-beta.57",
-    "electron": "^12.0.10",
-    "electron-wix-msi": "^3.2.0"
+    "@electron-forge/cli": "^6.0.0-beta.55",
+    "@electron-forge/maker-deb": "^6.0.0-beta.55",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.55",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.55",
+    "@electron-forge/maker-zip": "^6.0.0-beta.55",
+    "electron": "^12.0.13",
+    "electron-winstaller": "^5.0.0",
+	"electron-wix-msi": "^3.2.0"
   },
   "dependencies": {
-    "@electron-forge/maker-wix": "^6.0.0-beta.57",
-    "dgram": "^1.0.1",
+	"@electron-forge/maker-wix": "^6.0.0-beta.57",
     "electron-squirrel-startup": "^1.0.0",
-    "form-data": "^4.0.0",
-    "ip": "^1.1.5",
-    "meow": "^10.0.0",
-    "trim-newlines": "^4.0.1"
+    "update-electron-app": "^2.0.1",
+	"ip": "^1.1.5",
+	"form-data": "^4.0.0"
   },
   "config": {
     "forge": {
-      "packagerConfig": {
-        "asar": true,
-        "icon": "css\\app.ico"
-      },
+      "packagerConfig": {},
       "makers": [
         {
           "name": "@electron-forge/maker-wix",
@@ -50,19 +46,25 @@
           }
         },
         {
-          "name": "@electron-forge/maker-dmg",
-          "config": {
-            "name": "electron-onebtn-upgrade"
-          }
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
         },
         {
           "name": "@electron-forge/maker-deb",
-          "config": {
-            "name": "electron-onebtn-upgrade"
-          }
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
         }
       ]
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aviosys101/onebtnupgrade.git"
   },
   "bugs": {
     "url": "https://github.com/aviosys101/onebtnupgrade/issues"

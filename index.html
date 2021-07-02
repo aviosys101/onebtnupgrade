@@ -1,20 +1,56 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="UTF-8">
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <title></title>
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
-    <link rel="stylesheet" href="css/style.css">
-    <title>IPPower Tools</title>
-  </head>
-  <body>
- 
-    <div id="grouplist"> </div><br><br>
-    <div id='progid' >
-    <div class='progbar' ><div class='prog'>Loading...</div></div>
-  </div>
+    <link href="simple.css" type="text/CSS" rel="stylesheet" />
 
-    <!-- Adding Individual Renderer Process JS File -->
-	 <script src="renderer.js"></script>
-  </body>
+    <script type="text/javascript" src="./searcher.js"></script>
+	<script type="text/javascript" src="./renderer.js"></script>
+    <script>
+        mtk_server();
+    </script>
+       
+</head>
+<body style="background: white;">
+
+		<div>
+          <table id="lan_table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Mac</th>
+                <th>IP</th>
+                <th>Netmask</th>
+                <th>Gateway</th>
+                <th>DHCP</th>
+                <th>Version</th>
+                <th>Wifi</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+    
+        <tbody id="lan_tbody">
+    
+        </tbody>
+    </table>
+</div>
+
+      <label for="status"></label>
+      <div align="center">
+        <textarea name="status" cols="100" rows="8" id="status"></textarea>
+      </div>
+
+
+    
+<script>
+        require('electron').ipcRenderer.on('lan_search', (event, message) => {
+          console.log(message);
+          var msg = Buffer.from('IPQUERY,0');
+          send_brocast(msg);
+        })
+       
+      </script>
+</body>
 </html>
