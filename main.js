@@ -298,7 +298,7 @@ ipcMain.on('uploadfw', (event,arg,arg1,arg2,arg3,arg4,arg5,arg6) =>  {
   authPromptWin.setMenuBarVisibility(false);
   authPromptWin.loadFile("auth-form.html"); // load your html form
     return new Promise((resolve, reject) => {
-      ipc.once("form-submission", (event, username, password) => {
+      ipcMain.once("form-submission", (event, username, password) => {
         authPromptWin.close();
         const credentials = {
           username,
