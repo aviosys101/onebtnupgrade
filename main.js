@@ -169,12 +169,13 @@ ipcMain.on('close_edit_window', (event, arg) => {
   edit_win.close();
 })
 
+/*
 require('update-electron-app')({
   repo: 'aviosys101/ipedit_update',
   updateInterval: '20 minutes',
   //logger: require('electron-log')
 })
-
+*/
 
 // ipcMain.on('synchronous-message', (event, arg) => {
 //   console.log(arg) // prints "ping"
