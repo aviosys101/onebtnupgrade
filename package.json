@@ -2,7 +2,7 @@
   "name": "onebtn-upgrade",
   "version": "1.0.0",
   "description": "upgrade multiple devices",
-  "private": true,
+  "private": false,
   "productName": "Onebtn-upgrade",
   "main": "main.js",
   "scripts": {

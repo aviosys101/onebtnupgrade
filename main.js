@@ -91,8 +91,8 @@ var template = [{
 	  properties: ['openFile']
 	  }).then(result => {
 		filepath1 = result.filePaths[0];
-		console.log(filepath1)
-		win.webContents.send('dispath1',filepath1);
+		  console.log(filepath1)
+		  win.webContents.send('dispath1',filepath1);
 	  }).catch(err => {
 		console.log(err)
 	  })                    
@@ -201,13 +201,13 @@ ipcMain.on('uploadfw', (event,arg,arg1,arg2,arg3,arg4,arg5,arg6) =>  {
   const form = new FormData();
   if(arg6 == '0')
   {
-	console.log('firmware')
-	form.append('filename', fs.createReadStream(filepath));
+	  console.log('firmware')
+	  form.append('filename', fs.createReadStream(filepath));
   }
   else
   {
-	console.log('bootloader')
-	form.append('filename', fs.createReadStream(filepath1));
+	  console.log('bootloader')
+	  form.append('filename', fs.createReadStream(filepath1));
   }  
   
   const requestApi = {
@@ -240,34 +240,22 @@ ipcMain.on('uploadfw', (event,arg,arg1,arg2,arg3,arg4,arg5,arg6) =>  {
     }else{
       pop++
     }
-    // dialog.showMessageBox({
-    //   type: 'info',
-    //   title: 'MessageBox',
-    //   message: host+' Upgrade firmware OK'
-    // })
+
+    dialog.showMessageBox({
+      type: 'info',
+      title: 'MessageBox',
+      message: host+' Upgrade firmware OK'
+    })
 
     response.on('error', (error) => {
       console.log(`ERROR: ${JSON.stringify(error)}`);
     })
   })
 
-  request.on("upload-progress", (data) => {
-    const progress = request.getUploadProgress();
-    if(progress.total == data ){
-      setTimeout(function(){
-        event.reply("upload-pro", {
-          host,
-          data,
-          progress
-        }); 
-      },20000);
-    }
-  })
-
   request.on('login', (authInfo, callback) => {
     var authhost = authInfo.host;
     authfail++;   
-    if(authfail > 3)
+    if(authfail > 1)
     {
       authfail = 0;
       createAuthPrompt(authhost).then(credentials => {

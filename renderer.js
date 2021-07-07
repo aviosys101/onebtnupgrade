@@ -11,7 +11,7 @@ var udpmsg={};
 var nowpath='';
 var nowpath1='';
 var nowfw = 'v1.28_682';
-var nowfw1 = 'v1.28_682';
+
 
 
 /******************************* */
@@ -24,24 +24,29 @@ function nowupload(px){
     {
       
       var openx = listT[s].innerText;
-	  var macd = listT1[s].innerText;
-	  var fw = listT2[s].innerText;
+	    var macd = listT1[s].innerText;
+	    var fw = listT2[s].innerText;
       var prd = openx.split(':')[0];
 
-	  
-      body[s]=prd;
-      bodymac[s]=macd;	  
-      /*if(fw != nowfw)
+      if(px == 0)
       {
-        //document.getElementsByClassName('progbarsw')[s].style.display='block';
+        if(fw != nowfw)
+        {
+          body[s]=prd;
+          bodymac[s]=macd;
+        }
+        else
+        {
+          body[s]='';
+          bodymac[s]='';
+        }
+      }
+      else if(px == 1)
+      {
         body[s]=prd;
         bodymac[s]=macd;
       }
-      else
-      {
-        body[s]='';
-        bodymac[s]='';
-      }*/
+
 
       
     }
@@ -56,9 +61,8 @@ function nowupload(px){
 /**************display menu**************************************************** */
 ipc.on('dispscan', (event, arg) => {
 
-  //document.getElementById('progid').style.display='block';
 	var msg = Buffer.from('IPQUERY,0');
-	send_brocast(msg); 
+	send_brocast(msg);
 
 })
 
@@ -104,7 +108,7 @@ ipc.on('dispath', (event, arg) => {
 ipc.on('dispath1', (event, arg) => { 
   nowpath1 = arg;
   let nowfw3=arg.split(/\/|\\/).pop()
-  nowfw1 = 'v1.'+nowfw3.substring(13,nowfw3.length)
+  nowfw1 = nowfw3;
 })
 
 ipc.on('asynchronous-reply', (event, arg) => {
@@ -141,7 +145,7 @@ function vloop(idx,idx1)
   }
   else
   {
-    setTimeout(function(){vloop(totle,idx1);},60000);        
+    setTimeout(function(){vloop(totle,idx1);},70000);        
   }
 }
 
