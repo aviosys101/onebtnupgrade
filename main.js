@@ -199,15 +199,18 @@ ipcMain.on('uploadfw', (event,arg,arg1,arg2,arg3,arg4,arg5,arg6) =>  {
   const host = arg;
   const macid2 = arg3;
   const pathcgi = arg5
+  var Msgt = '';
   const form = new FormData();
   if(arg6 == '0')
   {
 	  console.log('firmware')
+    Msgt = ' Upgrade firmware OK';
 	  form.append('filename', fs.createReadStream(filepath));
   }
   else
   {
 	  console.log('bootloader')
+    Msgt = ' Upgrade bootloader OK';
 	  form.append('filename', fs.createReadStream(filepath1));
   }  
   
@@ -245,7 +248,7 @@ ipcMain.on('uploadfw', (event,arg,arg1,arg2,arg3,arg4,arg5,arg6) =>  {
     dialog.showMessageBox({
       type: 'info',
       title: 'MessageBox',
-      message: host+' Upgrade firmware OK'
+      message: host+Msgt
     })
 
     response.on('error', (error) => {
