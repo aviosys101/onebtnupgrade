@@ -2,7 +2,7 @@
 const path = require('path')
 const electron = require('electron')
 
-const {screen,dialog,shell,net } = require('electron')
+const {screen,dialog,shell,net,autoUpdater } = require('electron')
 const BrowserWindow = electron.BrowserWindow
 const Menu = electron.Menu
 const app = electron.app
@@ -169,18 +169,13 @@ ipcMain.on('close_edit_window', (event, arg) => {
   edit_win.close();
 })
 
-/*
-require('update-electron-app')({
-  repo: 'aviosys101/ipedit_update',
-  updateInterval: '20 minutes',
-  //logger: require('electron-log')
-})
-*/
 
-// ipcMain.on('synchronous-message', (event, arg) => {
-//   console.log(arg) // prints "ping"
-//   event.returnValue = 'pong'
+// require('update-electron-app')({
+//   repo: 'aviosys101/onebtn_update',
+//   updateInterval: '20 minutes',
+//   //logger: require('electron-log')
 // })
+
 
 
 ipcMain.on('uploadfw', (event,arg,arg1,arg2,arg3,arg4,arg5,arg6) =>  {
