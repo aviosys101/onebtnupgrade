@@ -170,11 +170,12 @@ ipcMain.on('close_edit_window', (event, arg) => {
 })
 
 
-// require('update-electron-app')({
-//   repo: 'aviosys101/onebtn_update',
-//   updateInterval: '20 minutes',
-//   //logger: require('electron-log')
-// })
+require('update-electron-app')({
+  repo: 'aviosys101/onebtn_update',
+  updateInterval: '20 minutes',
+  //logger: require('electron-log')
+})
+
 
 
 
