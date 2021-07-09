@@ -102,13 +102,30 @@ ipc.on('dispupdate', (event, arg) => {
 ipc.on('dispath', (event, arg) => { 
   nowpath = arg;
   let nowfw2=arg.split(/\/|\\/).pop()
-  nowfw = 'v1.'+nowfw2.substring(13,nowfw2.length)
+  console.log(nowfw2.substring(0,11))
+  if(nowfw2.substring(0,11) == 'root_uImage')
+  {
+    nowfw = 'v1.'+nowfw2.substring(13,nowfw2.length)
+  }
+  else
+  {
+    alert('File name error');
+  }
 })
 
 ipc.on('dispath1', (event, arg) => { 
   nowpath1 = arg;
   let nowfw3=arg.split(/\/|\\/).pop()
-  nowfw1 = nowfw3;
+  console.log(nowfw3.substring(0,5))
+  if(nowfw3.substring(0,5) == 'uboot')
+  {
+    nowfw1 = nowfw3;
+  }
+  else
+  {
+    alert('File name error');
+  }  
+  
 })
 
 ipc.on('asynchronous-reply', (event, arg) => {
